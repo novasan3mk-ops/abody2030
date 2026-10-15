@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام طوارئ الابن (ذوي الهمم - الصم)</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.85);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --primary-color: #38bdf8;
+            --danger-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border-color);
+            padding: 35px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 450px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        h2 {
+            color: #ef4444;
+            margin-bottom: 8px;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 15px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-main);
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        select option {
+            background-color: #0f172a;
+            color: #fff;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .emergency-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.3s;
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .emergency-btn:hover {
+            opacity: 0.95;
+            transform: translateY(-2px);
+        }
+
+        .emergency-btn:active {
+            transform: translateY(0);
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            min-height: 25px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🚨 نداء طوارئ الابن</h2>
+        <p class="subtitle">تنبيه عاجل لولي الأمر / المستلم (فئة الصم والبكم)</p>
+        
+        <form id="emergencyForm">
+            <div class="form-group">
+                <label for="phone">رقم المستلم (ولي الأمر / الطوارئ):</label>
+                <input type="text" id="phone" placeholder="0580682211" required>
+            </div>
+
+            <div class="form-group">
+                <label for="alertType">نوع حالة الطوارئ:</label>
+                <select id="alertType" required>
+                    <option value="🚨 حالة طوارئ عاجلة جداً - يرجى التواجد والتواصل فوراً!">🚨 حالة طوارئ عاجلة جداً</option>
+                    <option value="⚠️ الابن يحتاج مساعدة عاجلة (فئة الصم والبكم) ولا يستطيع الكلام">⚠️ طلب مساعدة عاجلة</option>
+                    <option value="📍 الابن في موقع يحتاج المساعدة الفورية">📍 إشعار موقع / استغاثة</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="emergency-btn">
+                <span>🚨 إرسال نداء الطوارئ عبر الواتساب</span>
+            </button>
+        </form>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1558557055319548005/XPDLP_hG8YHnLQ6ArphGiU04mlRZIS5NIoDwk1m2xVtcbSGIE5LdzDJPhNagfyNRyGhH";
+
+        document.getElementById('emergencyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('phone').value.trim();
+            const alertType = document.getElementById('alertType').value;
+            const statusDiv = document.getElementById('status');
+
+            // صيغة الرسالة التلقائية الخاصة بالطوارئ
+            const alertMessage = `تنبيه نداء طوارئ: [الابن من ذوي الهمم - فئة الصم والبكم] - ${alertType}`;
+            const discordContent = `${phone}:${alertMessage}`;
+
+            statusDiv.style.color = "#38bdf8";
+            statusDiv.textContent = "جاري إرسال التنبيه...";
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: discordContent
+                    })
+                });
+
+                if (response.ok) {
+                    statusDiv.style.color = "#34d399";
+                    statusDiv.textContent = "✅ تم إرسال نداء الطوارئ بنجاح!";
+                } else {
+                    throw new Error('فشل الإرسال');
+                }
+            } catch (error) {
+                statusDiv.style.color = "#f87171";
+                statusDiv.textContent = "❌ حدث خطأ في الاتصال.";
+                console.error(error);
+            }
+        });
+    </script>
+
+</body>
+</html>
